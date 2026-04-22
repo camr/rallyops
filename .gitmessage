@@ -1,0 +1,30 @@
+# Commit Message Format
+#
+# This repository uses Conventional Commits specification:
+# <type>: <description>
+#
+# [optional body]
+#
+# [optional footer(s)]
+#
+# Types:
+#   feat:     A new feature
+#   fix:      A bug fix
+#   chore:    Routine tasks, maintenance, or minor changes
+#   refactor: Code change that neither fixes a bug nor adds a feature
+#   docs:     Documentation only changes
+#   test:     Adding or correcting tests
+#   style:    Changes that don't affect code meaning (formatting, etc.)
+#
+# Examples:
+#   feat: add user authentication
+#   fix: prevent duplicate goal creation
+#   chore: update dependencies
+#   docs: add README section on deployment
+#
+# The commit-msg hook will automatically normalize plain messages:
+#   "Add new feature" → "feat: new feature"
+#   "Fix bug in calendar" → "fix: bug in calendar"
+#   "Remove old config" → "chore: old config"
+#   "Rename helper method" → "refactor: helper method"
+#

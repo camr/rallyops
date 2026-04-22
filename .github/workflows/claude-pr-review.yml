@@ -1,0 +1,34 @@
+name: Claude PR Review
+on:
+  workflow_dispatch:  # Disabled automatic runs; trigger manually when API credits are available
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          direct_prompt: |
+            Review this PR thoroughly. Check for:
+            - Bugs and logic errors
+            - Security vulnerabilities
+            - Code quality and maintainability
+            - Breaking changes
+
+            Then:
+            1. Post a detailed comment summarizing all findings with inline suggestions where applicable
+            2. Submit a formal GitHub review:
+               - Use `gh pr review --approve` if no significant issues
+               - Use `gh pr review --request-changes -b "<reason>"` if issues need resolution
+            
+            Be specific and actionable. Don't nitpick style unless a linter isn't configured.

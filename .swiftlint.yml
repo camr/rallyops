@@ -1,0 +1,31 @@
+identifier_name:
+  min_length:
+    warning: 1
+    error: 1
+  max_length:
+    warning: 60
+    error: 80
+  excluded:
+    - id
+    - core_value
+
+line_length:
+  warning: 150
+  error: 200
+
+file_length:
+  warning: 700
+  error: 1000
+
+type_name:
+  excluded:
+    - rallyopsTests
+    - rallyopsUITests
+    - rallyopsUITestsLaunchTests
+
+large_tuple:
+  warning: 6
+  error: 6
+
+disabled_rules:
+  - multiple_closures_with_trailing_closure

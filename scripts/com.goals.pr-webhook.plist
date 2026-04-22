@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.rallyops.pr-webhook</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/python3</string>
+        <string>/Users/camr/Projects/Personal/rallyops/scripts/pr-webhook.py</string>
+    </array>
+
+    <!-- Restart automatically if it exits -->
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- Start on login -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/camr/Projects/Personal/rallyops/scripts/pr-webhook.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/camr/Projects/Personal/rallyops/scripts/pr-webhook.log</string>
+
+    <!-- Throttle restarts to avoid tight loops on repeated crashes -->
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+</dict>
+</plist>

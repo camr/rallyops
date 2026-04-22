@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__mobile__list_devices",
+      "mcp__mobile__set_device",
+      "mcp__mobile__screenshot",
+      "mcp__mobile__get_ui",
+      "mcp__mobile__tap",
+      "Bash(td --help:*)",
+      "Bash(td create --help:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}

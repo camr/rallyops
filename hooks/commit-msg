@@ -1,0 +1,120 @@
+#!/bin/bash
+# Git commit-msg hook to enforce conventional commits format
+# Format: type(scope): description
+# Types: feat, fix, chore, refactor, docs, test, style
+
+COMMIT_MSG_FILE=$1
+
+# Get the first line for all checks
+FIRST_LINE_RAW=$(head -n1 "$COMMIT_MSG_FILE")
+
+# Skip merge commits and revert commits
+if printf '%s' "$FIRST_LINE_RAW" | grep -qE "^(Merge|Revert)"; then
+    exit 0
+fi
+
+# Skip fixup, squash, and amend commits (used by git rebase -i)
+# Normalizing these would corrupt interactive rebase workflows
+if printf '%s' "$FIRST_LINE_RAW" | grep -qE "^(fixup!|squash!|amend!) "; then
+    exit 0
+fi
+
+# Skip if message already has conventional format (with optional scope)
+if printf '%s' "$FIRST_LINE_RAW" | grep -qE "^(feat|fix|chore|refactor|docs|test|style)(\(.+\))?:\s.+"; then
+    exit 0
+fi
+
+# Extract rest (body/trailers) preserving blank lines
+FIRST_LINE="$FIRST_LINE_RAW"
+REST=$(tail -n +2 "$COMMIT_MSG_FILE")
+
+# Attempt to infer type from message content and strip the type word from description
+TYPE="chore"
+DESCRIPTION="$FIRST_LINE"
+
+if echo "$FIRST_LINE" | grep -qiE "^add\s"; then
+    TYPE="feat"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^add[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^implement\s"; then
+    TYPE="feat"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^implement[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^create\s"; then
+    TYPE="feat"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^create[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^(improve|enhance)\s"; then
+    TYPE="refactor"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^(improve|enhance)[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^(support|enable)\s"; then
+    TYPE="feat"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^(support|enable)[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^fix\s"; then
+    TYPE="fix"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^fix[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^update\s"; then
+    TYPE="chore"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^update[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^modify\s"; then
+    TYPE="chore"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^modify[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^change\s"; then
+    TYPE="chore"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^change[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^(remove|delete)\s"; then
+    TYPE="chore"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^(remove|delete)[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^(clean|cleanup)\s"; then
+    TYPE="chore"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^clean(up)?[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^disable\s"; then
+    TYPE="chore"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^disable[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^bump\s"; then
+    TYPE="chore"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^bump[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^refactor\s"; then
+    TYPE="refactor"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^refactor[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^(rename|move|migrate)\s"; then
+    TYPE="refactor"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^(rename|move|migrate)[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^(document|doc)\s"; then
+    TYPE="docs"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^doc(ument)?[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^test\s"; then
+    TYPE="test"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^test[[:space:]]+//I')
+elif echo "$FIRST_LINE" | grep -qiE "^style\s"; then
+    TYPE="style"
+    DESCRIPTION=$(echo "$FIRST_LINE" | sed -E 's/^style[[:space:]]+//I')
+fi
+
+# Skip normalization if description is empty after keyword removal
+if [ -z "$(echo "$DESCRIPTION" | tr -d '[:space:]')" ]; then
+    echo "Warning: unable to normalize commit message: '$FIRST_LINE'"
+    exit 0
+fi
+
+# Lowercase first letter of description for consistency
+# Only lowercase if the first word looks like a normal title-case word
+# (first char upper, rest of word lower). If the first word is an acronym
+# or all-caps abbreviation (e.g. UI, API, README), leave it unchanged.
+FIRST_WORD=$(echo "$DESCRIPTION" | awk '{print $1}')
+FIRST_WORD_REST=$(echo "$FIRST_WORD" | cut -c2-)
+if echo "$FIRST_WORD_REST" | grep -q '[[:upper:]]'; then
+    : # First word contains uppercase beyond the first char — likely an acronym; skip lowercasing
+else
+    FIRST_CHAR=$(echo "$DESCRIPTION" | cut -c1 | tr '[:upper:]' '[:lower:]')
+    REST_CHARS=$(echo "$DESCRIPTION" | cut -c2-)
+    DESCRIPTION="${FIRST_CHAR}${REST_CHARS}"
+fi
+
+# Write normalized message using temp file to preserve blank lines
+TMPFILE=$(mktemp)
+printf '%s\n' "$TYPE: $DESCRIPTION" > "$TMPFILE"
+if [ -n "$REST" ]; then
+    printf '%s\n' "$REST" >> "$TMPFILE"
+fi
+mv "$TMPFILE" "$COMMIT_MSG_FILE"
+
+echo "ℹ️  Commit message normalized to: $TYPE: $DESCRIPTION"
+exit 0

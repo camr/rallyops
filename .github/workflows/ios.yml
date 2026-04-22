@@ -1,0 +1,15 @@
+name: iOS CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: CI-safe iOS build
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build app with CI-safe command
+        run: ./scripts/ci-build.sh
